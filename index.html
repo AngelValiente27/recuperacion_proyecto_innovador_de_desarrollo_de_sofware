@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EduControl: sistema de gestión estudiantil, materias y calificaciones.">
+    <title>EduControl | Gestión Estudiantil</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="aplicacion">
+
+        <aside class="barra-lateral">
+            <div class="marca">
+                <div class="marca-icono">E</div>
+                <div>
+                    <h2>EduControl</h2>
+                    <p>Gestión académica</p>
+                </div>
+            </div>
+
+            <nav class="navegacion" aria-label="Menú principal">
+                <p class="nav-titulo">MENÚ PRINCIPAL</p>
+
+                <button class="nav-enlace activo" data-seccion="inicio">
+                    <span>▦</span> Panel principal
+                </button>
+
+                <button class="nav-enlace" data-seccion="alumnos">
+                    <span>♙</span> Alumnos
+                </button>
+
+                <button class="nav-enlace" data-seccion="materias">
+                    <span>▤</span> Materias
+                </button>
+
+                <button class="nav-enlace" data-seccion="calificaciones">
+                    <span>✓</span> Calificaciones
+                </button>
+            </nav>
+
+            <div class="lateral-pie">
+                <p>Sistema académico</p>
+                <small>EduControl · 2026</small>
+            </div>
+        </aside>
+
+        <main class="contenido-principal">
+            <header class="encabezado">
+                <div>
+                    <p class="texto-superior">ADMINISTRACIÓN ACADÉMICA</p>
+                    <h1 id="tituloPagina">Panel principal</h1>
+                </div>
+
+                <div class="usuario">
+                    <div class="avatar">EC</div>
+                    <div>
+                        <strong>Administrador</strong>
+                        <small>Gestión estudiantil</small>
+                    </div>
+                </div>
+            </header>
+
+            <section id="inicio" class="seccion activa">
+                <div class="bienvenida">
+                    <div>
+                        <p class="texto-superior">RESUMEN GENERAL</p>
+                        <h2>Bienvenido a EduControl</h2>
+                        <p>Administra alumnos, materias y rendimiento académico desde un solo lugar.</p>
+                    </div>
+                    <div class="bienvenida-icono">🎓</div>
+                </div>
+
+                <div class="estadisticas">
+                    <article class="tarjeta-estadistica">
+                        <div class="estadistica-icono azul">♙</div>
+                        <p>Total de alumnos</p>
+                        <h3 id="totalAlumnos">0</h3>
+                        <small>Alumnos registrados</small>
+                    </article>
+
+                    <article class="tarjeta-estadistica">
+                        <div class="estadistica-icono verde">▤</div>
+                        <p>Total de materias</p>
+                        <h3 id="totalMaterias">0</h3>
+                        <small>Materias registradas</small>
+                    </article>
+
+                    <article class="tarjeta-estadistica">
+                        <div class="estadistica-icono morado">✓</div>
+                        <p>Promedio general</p>
+                        <h3 id="promedioGeneral">0.00</h3>
+                        <small>Escala de 0 a 10</small>
+                    </article>
+
+                    <article class="tarjeta-estadistica">
+                        <div class="estadistica-icono naranja">★</div>
+                        <p>Alumnos aprobados</p>
+                        <h3 id="totalAprobados">0</h3>
+                        <small>Promedio igual o superior a 6</small>
+                    </article>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-encabezado">
+                        <div>
+                            <h2>Actividad académica</h2>
+                            <p>Resumen de los registros del sistema</p>
+                        </div>
+                    </div>
+
+                    <div class="resumen-vacio" id="resumenActividad">
+                        <div class="resumen-icono">📚</div>
+                        <h3>Tu sistema está listo</h3>
+                        <p>Cuando registres alumnos, materias y calificaciones, aquí podrás consultar el resumen académico.</p>
+                        <button class="boton boton-principal" data-ir="alumnos">
+                            Registrar primer alumno
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="alumnos" class="seccion">
+                <div class="encabezado-seccion">
+                    <div>
+                        <h2>Gestión de alumnos</h2>
+                        <p>Registra y administra la información de los estudiantes.</p>
+                    </div>
+                    <button class="boton boton-principal" id="btnNuevoAlumno">
+                        + Nuevo alumno
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <div class="barra-herramientas">
+                        <input type="search" id="buscarAlumno"
+                            placeholder="Buscar por nombre, apellido o NIE..."
+                            aria-label="Buscar alumnos">
+                    </div>
+
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>NIE</th>
+                                    <th>Nombre completo</th>
+                                    <th>Correo</th>
+                                    <th>Promedio</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAlumnos">
+                                <tr>
+                                    <td colspan="6" class="mensaje-tabla">
+                                        Todavía no hay alumnos registrados.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="materias" class="seccion">
+                <div class="encabezado-seccion">
+                    <div>
+                        <h2>Gestión de materias</h2>
+                        <p>Organiza las asignaturas de tu institución.</p>
+                    </div>
+                    <button class="boton boton-principal" id="btnNuevaMateria">
+                        + Nueva materia
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <div class="barra-herramientas">
+                        <input type="search" id="buscarMateria"
+                            placeholder="Buscar materia..."
+                            aria-label="Buscar materias">
+                    </div>
+
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre de la materia</th>
+                                    <th>Descripción</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaMaterias">
+                                <tr>
+                                    <td colspan="4" class="mensaje-tabla">
+                                        Todavía no hay materias registradas.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="calificaciones" class="seccion">
+                <div class="encabezado-seccion">
+                    <div>
+                        <h2>Calificaciones</h2>
+                        <p>Consulta y administra el rendimiento de los alumnos.</p>
+                    </div>
+                    <button class="boton boton-principal" id="btnNuevaNota">
+                        + Registrar nota
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <div class="barra-herramientas">
+                        <input type="search" id="buscarCalificacion"
+                            placeholder="Buscar alumno o materia..."
+                            aria-label="Buscar calificaciones">
+                    </div>
+
+                    <div class="tabla-contenedor">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th>Materia</th>
+                                    <th>Calificación</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCalificaciones">
+                                <tr>
+                                    <td colspan="5" class="mensaje-tabla">
+                                        Todavía no hay calificaciones registradas.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="pie-pagina">
+                <p>EduControl © 2026 · Sistema de gestión estudiantil</p>
+                <p>Desarrollado con HTML, CSS y JavaScript</p>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>
