@@ -35,6 +35,8 @@ function guardarDatos(clave, datos) {
 }
 
 let alumnos = cargarDatos(CLAVES.alumnos);
+let materias = cargarDatos(CLAVES.materias);
+let calificaciones = cargarDatos(CLAVES.calificaciones);
 
 // 2. Utilidades
 function escaparHTML(valor) {
@@ -713,3 +715,316 @@ document.getElementById("tablaMaterias")
 
 /* Mostrar las materias guardadas al iniciar */
 renderizarMaterias();
+
+
+/* ==========================================
+   MODULO DE CALIFICACIONES - EDUCONTROL
+========================================== */
+
+function renderizarCalificaciones(filtro = "") {
+    const tabla = document.getElementById("tablaCalificaciones");
+    if (!tabla) return;
+
+    const busqueda = filtro.trim().toLowerCase();
+
+    calificaciones = cargarDatos(CLAVES.calificaciones);
+
+    const filtradas = calificaciones.filter(nota => {
+        const alumno = alumnos.find(a =>
+            String(a.id) === String(nota.alumnoId)
+        );
+
+        const materia = materias.find(m =>
+            String(m.id) === String(nota.materiaId)
+        );
+
+        const texto = [
+            alumno?.nie,
+            alumno?.nombre,
+            alumno?.apellido,
+            materia?.nombre,
+            nota.periodo,
+            nota.nota
+        ].join(" ").toLowerCase();
+
+        return texto.includes(busqueda);
+    });
+
+    if (filtradas.length === 0) {
+        tabla.innerHTML = `
+            <tr>
+                <td colspan="5" class="mensaje-tabla">
+                    ${calificaciones.length === 0
+                        ? "Todavía no hay calificaciones registradas."
+                        : "No se encontraron calificaciones."}
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tabla.innerHTML = filtradas.map(nota => {
+        const alumno = alumnos.find(a =>
+            String(a.id) === String(nota.alumnoId)
+        );
+
+        const materia = materias.find(m =>
+            String(m.id) === String(nota.materiaId)
+        );
+
+        return `
+            <tr>
+                <td>${escaparHTML(
+                    alumno
+                        ? `${alumno.nombre} ${alumno.apellido}`
+                        : "Alumno no disponible"
+                )}</td>
+                <td>${escaparHTML(materia?.nombre || "Materia no disponible")}</td>
+                <td>${escaparHTML(nota.periodo || "Sin especificar")}</td>
+                <td>${Number(nota.nota).toFixed(2)}</td>
+                <td>
+                    <button type="button"
+                        class="btn-secundario"
+                        data-accion-nota="editar"
+                        data-id="${escaparHTML(nota.id)}">
+                        Editar
+                    </button>
+                    <button type="button"
+                        class="btn-peligro"
+                        data-accion-nota="eliminar"
+                        data-id="${escaparHTML(nota.id)}">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function abrirFormularioNota(notaId = null) {
+    if (alumnos.length === 0) {
+        alert("Primero debes registrar al menos un alumno.");
+        return;
+    }
+
+    if (materias.length === 0) {
+        alert("Primero debes registrar al menos una materia.");
+        return;
+    }
+
+    const existente = notaId
+        ? calificaciones.find(n =>
+            String(n.id) === String(notaId)
+        )
+        : null;
+
+    if (notaId && !existente) {
+        alert("No se encontró la calificación.");
+        return;
+    }
+
+    document.getElementById("modalNota")?.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "modalNota";
+    modal.className = "modal-overlay";
+
+    modal.innerHTML = `
+        <section class="modal-contenido"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloFormularioNota">
+
+            <div class="panel-encabezado">
+                <h2 id="tituloFormularioNota">
+                    ${existente ? "Editar calificación" : "Registrar calificación"}
+                </h2>
+                <p>Ingresa los datos de la nota del estudiante.</p>
+            </div>
+
+            <form id="formularioNota">
+                <div class="campo">
+                    <label for="alumnoNota">Alumno *</label>
+                    <select id="alumnoNota" name="alumnoId" required>
+                        <option value="">Selecciona un alumno</option>
+                        ${alumnos.map(a => `
+                            <option value="${escaparHTML(a.id)}"
+                                ${String(existente?.alumnoId) === String(a.id)
+                                    ? "selected" : ""}>
+                                ${escaparHTML(a.nie)} -
+                                ${escaparHTML(a.nombre)} ${escaparHTML(a.apellido)}
+                            </option>
+                        `).join("")}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="materiaNota">Materia *</label>
+                    <select id="materiaNota" name="materiaId" required>
+                        <option value="">Selecciona una materia</option>
+                        ${materias.map(m => `
+                            <option value="${escaparHTML(m.id)}"
+                                ${String(existente?.materiaId) === String(m.id)
+                                    ? "selected" : ""}>
+                                ${escaparHTML(m.codigo)} - ${escaparHTML(m.nombre)}
+                            </option>
+                        `).join("")}
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="periodoNota">Periodo académico *</label>
+                    <input id="periodoNota" name="periodo"
+                        type="text" maxlength="40" required
+                        placeholder="Ej. Primer periodo"
+                        value="${escaparHTML(existente?.periodo || "")}">
+                </div>
+
+                <div class="campo">
+                    <label for="valorNota">Nota (0 a 10) *</label>
+                    <input id="valorNota" name="nota"
+                        type="number" min="0" max="10" step="0.01"
+                        required
+                        value="${existente ? escaparHTML(existente.nota) : ""}"
+                        placeholder="Ej. 8.50">
+                </div>
+
+                <div class="acciones-formulario">
+                    <button type="button" id="cancelarNota"
+                        class="btn-secundario">Cancelar</button>
+                    <button type="submit" class="btn-principal">
+                        ${existente ? "Guardar cambios" : "Registrar nota"}
+                    </button>
+                </div>
+            </form>
+        </section>
+    `;
+
+    document.body.appendChild(modal);
+
+    const cerrar = () => modal.remove();
+
+    document.getElementById("cancelarNota")
+        .addEventListener("click", cerrar);
+
+    modal.addEventListener("click", evento => {
+        if (evento.target === modal) cerrar();
+    });
+
+    document.getElementById("formularioNota")
+        .addEventListener("submit", evento => {
+            evento.preventDefault();
+
+            const formulario = evento.currentTarget;
+            const alumnoId = formulario.elements.alumnoId.value;
+            const materiaId = formulario.elements.materiaId.value;
+            const periodo = formulario.elements.periodo.value.trim();
+            const valor = formulario.elements.nota.value;
+            const nota = Number(valor);
+
+            if (!alumnoId || !materiaId || !periodo || valor === "") {
+                alert("Completa todos los campos obligatorios.");
+                return;
+            }
+
+            if (!Number.isFinite(nota) || nota < 0 || nota > 10) {
+                alert("La nota debe estar entre 0 y 10.");
+                return;
+            }
+
+            const registro = {
+                id: existente ? existente.id : crearId(),
+                alumnoId,
+                materiaId,
+                periodo,
+                nota
+            };
+
+            const anteriores = [...calificaciones];
+
+            calificaciones = existente
+                ? calificaciones.map(n =>
+                    String(n.id) === String(notaId) ? registro : n
+                )
+                : [...calificaciones, registro];
+
+            if (!guardarDatos(CLAVES.calificaciones, calificaciones)) {
+                calificaciones = anteriores;
+                return;
+            }
+
+            cerrar();
+            renderizarCalificaciones(
+                document.getElementById("buscarCalificacion")?.value || ""
+            );
+            renderizarAlumnos(
+                document.getElementById("buscarAlumno")?.value || ""
+            );
+            actualizarEstadisticas();
+
+            alert(existente
+                ? "Calificación actualizada correctamente."
+                : "Calificación registrada correctamente.");
+        });
+}
+
+/* Botón para registrar calificaciones */
+document.getElementById("btnNuevaNota")
+    ?.addEventListener("click", () => abrirFormularioNota());
+
+/* Búsqueda de calificaciones */
+document.getElementById("buscarCalificacion")
+    ?.addEventListener("input", evento => {
+        renderizarCalificaciones(evento.target.value);
+    });
+
+/* Editar y eliminar calificaciones */
+document.getElementById("tablaCalificaciones")
+    ?.addEventListener("click", evento => {
+        const boton = evento.target.closest("[data-accion-nota]");
+        if (!boton) return;
+
+        const id = boton.dataset.id;
+        const accion = boton.dataset.accionNota;
+
+        if (accion === "editar") {
+            abrirFormularioNota(id);
+            return;
+        }
+
+        if (accion === "eliminar") {
+            const nota = calificaciones.find(n =>
+                String(n.id) === String(id)
+            );
+
+            if (!nota) return;
+
+            if (!confirm("¿Deseas eliminar esta calificación?")) {
+                return;
+            }
+
+            const anteriores = [...calificaciones];
+
+            calificaciones = calificaciones.filter(n =>
+                String(n.id) !== String(id)
+            );
+
+            if (!guardarDatos(CLAVES.calificaciones, calificaciones)) {
+                calificaciones = anteriores;
+                return;
+            }
+
+            renderizarCalificaciones(
+                document.getElementById("buscarCalificacion")?.value || ""
+            );
+            renderizarAlumnos(
+                document.getElementById("buscarAlumno")?.value || ""
+            );
+            actualizarEstadisticas();
+
+            alert("Calificación eliminada correctamente.");
+        }
+    });
+
+/* Mostrar calificaciones al iniciar */
+renderizarCalificaciones();
